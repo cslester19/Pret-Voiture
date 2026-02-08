@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Prêt voiture",
     page_icon="🚗",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ----------- HIDE STREAMLIT UI -------------
