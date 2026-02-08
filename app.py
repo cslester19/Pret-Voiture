@@ -402,7 +402,7 @@ with col_results:
 
             interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
 
-            a1, a2, a3, a4 = st.columns(4, gap="medium")
+            a1, a2, a3, a4 = st.columns(4, gap="large")
             with a1:
                 st.markdown(
                     f"""<div class="card card-blue"><h3>Intérêts payés (cumul)</h3><div class="big">{money(interets_payes)}</div></div>""",
