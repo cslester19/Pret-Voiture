@@ -197,15 +197,14 @@ if "calculated" not in st.session_state:
     st.session_state.calculated = False
 
 # ===================== HEADER =====================
-st.title("🚗 Calculateur de prêt voiture — version détaillée")
-st.markdown('<p class="sub">Remplis les champs à gauche puis clique sur <b>Calculer</b>.</p>', unsafe_allow_html=True)
+st.title("🚗 Calculateur de prêt voiture")
 
 # ===================== LAYOUT =====================
 col_inputs, col_results = st.columns([1.05, 1.95], gap="large")
 
 with col_inputs:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("### Entrées")
+    st.markdown("Remplis les champs puis clique sur <b>Calculer</b>")
 
     prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=0.0, step=100.0)
     options = st.number_input("Autres options ($)", min_value=0.0, value=0.0, step=50.0)
