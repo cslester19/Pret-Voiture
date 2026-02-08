@@ -355,37 +355,4 @@ with col_results:
                 st.markdown(f"""<div class="card"><h3>Capital remboursé</h3><div class="big">{money(capital_remb)}</div></div>""", unsafe_allow_html=True)
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-
-        # ===== EXPORT (CSV, no openpyxl) =====
-        st.subheader("Export")
-        if df.empty:
-            st.info("Rien à exporter.")
-        else:
-            export_df = df.copy()
-            export_df["Date"] = export_df["Date"].astype(str)
-
-            summary = pd.DataFrame([{
-                "Prix avant taxes": prix_avant,
-                "Options": options,
-                "Taxes %": taxes_pct,
-                "Dépôt": depot,
-                "Taux annuel %": taux_annuel,
-                "Durée (mois)": duree_mois,
-                "Fréquence": freq,
-                "Date début": str(debut),
-                "Prix après taxes": prix_apres,
-                "Emprunt total": emprunt_total,
-                "Paiement": paiement,
-                "Nb paiements": nb_paiements,
-                "Intérêts totaux": interets_totaux,
-                "Total payé": total_paye
-            }])
-
-            csv1 = export_df.to_csv(index=False).encode("utf-8")
-            csv2 = summary.to_csv(index=False).encode("utf-8")
-
-            cexp1, cexp2 = st.columns(2)
-            with cexp1:
-                st.download_button("⬇️ Télécharger l’amortissement (CSV)", data=csv1, file_name="amortissement.csv", mime="text/csv")
-            with cexp2:
-                st.download_button("⬇️ Télécharger le résumé (CSV)", data=csv2, file_name="resume_pret.csv", mime="text/csv")
+        
