@@ -231,7 +231,7 @@ col_inputs, col_results = st.columns([1.05, 1.95], gap="large")
 # ===================== INPUTS (à gauche, pas de sidebar) =====================
 with col_inputs:
     st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("<h2>Entrées</h2>", unsafe_allow_html=True)
+    st.markdown("<h2>Saisir les différentes informations</h2>", unsafe_allow_html=True)
 
     prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=0.0, step=100.0)
     options = st.number_input("Autres options ($)", min_value=0.0, value=0.0, step=50.0)
