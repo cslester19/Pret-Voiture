@@ -308,7 +308,7 @@ else:
     ax.text(0, -0.12, money(float(interets_totaux)), ha="center", va="center", fontsize=12)
 
     st.pyplot(fig, clear_figure=True)
-        recap = pd.DataFrame({
+    recap = pd.DataFrame({
             "Type": ["Intérêts payés", "Intérêts restants", "Intérêts totaux"],
             "Montant": [money(interets_payes), money(interets_restants), money(float(interets_totaux))]
         })
