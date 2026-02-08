@@ -318,7 +318,7 @@ with col_results:
 
         st.markdown("")
 
-        r4, r5, r6 = st.columns(3, gap="medium")
+        r4, r5 = st.columns(2, gap="medium")
         with r4:
             st.markdown(
                 f"""
@@ -341,17 +341,7 @@ with col_results:
             """,
                 unsafe_allow_html=True,
             )
-        with r6:
-            st.markdown(
-                f"""
-            <div class="card">
-              <h3>Analyse</h3>
-              <div class="big">À une date</div>
-              <div class="mini">Intérêts payés / restants + solde</div>
-            </div>
-            """,
-                unsafe_allow_html=True,
-            )
+      
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
