@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 from datetime import date, timedelta
 
 # ------------------ PAGE / STYLE ------------------
@@ -8,19 +9,44 @@ st.set_page_config(page_title="Prêt voiture", page_icon="🚗", layout="wide")
 st.markdown(
     """
     <style>
-      .block-container { padding-top: 2rem; }
-      h1 { margin-bottom: .2rem; }
+      .block-container { padding-top: 1.6rem; padding-bottom: 2.2rem; }
+      h1 { margin-bottom: .15rem; letter-spacing: -0.3px; }
       .subtle { color: #6b7280; margin-top: 0; }
+
+      .pill {
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:999px;
+        background: rgba(2,132,199,.10);
+        color:#075985;
+        font-weight:700;
+        font-size:12px;
+      }
+
       .card {
         padding: 16px 18px;
-        border: 1px solid rgba(0,0,0,.08);
-        border-radius: 14px;
-        background: rgba(255,255,255,.6);
-        box-shadow: 0 6px 20px rgba(0,0,0,.04);
+        border: 1px solid rgba(15,23,42,.10);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+        box-shadow: 0 10px 30px rgba(15,23,42,.06);
       }
-      .card h3 { margin: 0 0 6px 0; font-size: 14px; color: #6b7280; font-weight: 600; }
-      .card .big { font-size: 26px; font-weight: 800; }
-      .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(59,130,246,.08); color: #1d4ed8; font-weight: 700; font-size: 12px; }
+      .card h3 {
+        margin: 0 0 6px 0;
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 700;
+      }
+      .card .big {
+        font-size: 26px;
+        font-weight: 900;
+        color: #0f172a;
+      }
+      .accent {
+        border-left: 6px solid var(--accent);
+        background: var(--bg);
+      }
+
+      .divider { height: 1px; background: rgba(15,23,42,.10); margin: 14px 0 10px; }
       .spacer { height: 10px; }
     </style>
     """,
@@ -28,6 +54,10 @@ st.markdown(
 )
 
 st.title("🚗 Calculateur de prêt voiture")
+st.markdown(
+    '<p class="subtle">Style banque • amortissement complet • analyse à une date • export Excel</p>',
+    unsafe_allow_html=True,
+)
 
 # ------------------ HELPERS ------------------
 def money(x: float) -> str:
@@ -109,6 +139,23 @@ def pick_stats_at_date(df: pd.DataFrame, chosen: date):
         "Capital remboursé": float(row["Capital remboursé (cumul)"]),
     }
 
+# ------------------ CARDS ------------------
+def card(col, title, value):
+    col.markdown(f"""
+      <div class="card">
+        <h3>{title}</h3>
+        <div class="big">{value}</div>
+      </div>
+    """, unsafe_allow_html=True)
+
+def card_color(col, title, value, accent="#2563eb", bg="rgba(37,99,235,.12)"):
+    col.markdown(f"""
+      <div class="card accent" style="--accent:{accent}; --bg:{bg};">
+        <h3>{title}</h3>
+        <div class="big">{value}</div>
+      </div>
+    """, unsafe_allow_html=True)
+
 # ------------------ SESSION STATE ------------------
 if "calculated" not in st.session_state:
     st.session_state.calculated = False
@@ -165,21 +212,11 @@ df, paiement, nb_paiements, interets_totaux = build_schedule(
     duration_months=int(duree_mois),
     start_date=debut
 )
-
 total_paye = paiement * nb_paiements
 
-# ------------------ SUMMARY CARDS ------------------
+# ------------------ SUMMARY ------------------
 st.markdown("## Résumé")
 c1, c2, c3, c4, c5 = st.columns(5)
-
-def card(col, title, value):
-    col.markdown(f"""
-      <div class="card">
-        <h3>{title}</h3>
-        <div class="big">{value}</div>
-      </div>
-    """, unsafe_allow_html=True)
-
 card(c1, "Prix avant taxes", money(prix_total_avant))
 card(c2, "Taxes", money(taxes_val))
 card(c3, "Prix après taxes", money(prix_apres))
@@ -203,7 +240,6 @@ with tab1:
     df_show["Date"] = df_show["Date"].astype(str)
     st.dataframe(df_show, use_container_width=True, height=560)
 
-    # Petit graphique (solde)
     st.markdown("### Graphique — Solde restant")
     chart_df = df[["Date", "Solde"]].copy()
     chart_df["Date"] = pd.to_datetime(chart_df["Date"])
@@ -218,23 +254,58 @@ with tab2:
     if stats is None:
         st.warning("La date choisie est avant la première date de paiement.")
     else:
-        interets_payes = stats["Intérêts payés (cumul)"]
-        interets_restants = interets_totaux - interets_payes
+        interets_payes = float(stats["Intérêts payés (cumul)"])
+        interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
+
+        st.markdown(
+            f'<span class="pill">Analyse au {date_choisie.strftime("%Y-%m-%d")}</span>',
+            unsafe_allow_html=True
+        )
+        st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
         a1, a2, a3, a4 = st.columns(4)
 
-        card(a1, "Intérêts payés (cumul)", money(interets_payes))
-        card(a2, "Capital restant", money(stats["Capital restant"]))
-        card(a3, "Capital remboursé", money(stats["Capital remboursé"]))
-        card(a4, "Intérêts restants", money(interets_restants))
+        # Orange = intérêts payés
+        card_color(a1, "Intérêts payés (cumul)", money(interets_payes),
+                   accent="#f59e0b", bg="rgba(245,158,11,.14)")
 
+        # Bleu = capital restant
+        card_color(a2, "Capital restant", money(float(stats["Capital restant"])),
+                   accent="#2563eb", bg="rgba(37,99,235,.12)")
+
+        # Vert = capital remboursé
+        card_color(a3, "Capital remboursé", money(float(stats["Capital remboursé"])),
+                   accent="#16a34a", bg="rgba(22,163,74,.14)")
+
+        # Rouge = intérêts restants
+        card_color(a4, "Intérêts restants", money(interets_restants),
+                   accent="#dc2626", bg="rgba(220,38,38,.12)")
+
+        st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+        st.markdown("### Intérêts — Payés vs Restants")
+
+        values = [interets_payes, interets_restants]
+
+        fig, ax = plt.subplots(figsize=(4.6, 4.6))
+        ax.pie(values, startangle=90, wedgeprops=dict(width=0.42))
+        ax.set(aspect="equal")
+
+        ax.text(0, 0.05, "Intérêts\nTotaux", ha="center", va="center", fontsize=12, fontweight="bold")
+        ax.text(0, -0.12, money(float(interets_totaux)), ha="center", va="center", fontsize=12)
+
+        st.pyplot(fig, clear_figure=True)
+
+        recap = pd.DataFrame({
+            "Type": ["Intérêts payés", "Intérêts restants", "Intérêts totaux"],
+            "Montant": [money(interets_payes), money(interets_restants), money(float(interets_totaux))]
+        })
+        st.dataframe(recap, use_container_width=True, hide_index=True)
 
 with tab3:
     st.markdown("### Export")
     import io
 
     buffer = io.BytesIO()
-    # pandas peut écrire sans préciser l’engine si openpyxl est installé
     with pd.ExcelWriter(buffer) as writer:
         df_export = df.copy()
         df_export["Date"] = df_export["Date"].astype(str)
