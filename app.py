@@ -198,13 +198,13 @@ if "calculated" not in st.session_state:
 
 # ===================== HEADER =====================
 st.title("🚗 Calculateur de prêt voiture")
+st.markdown('<p class="sub">Remplis les champs à gauche puis clique sur <b>Calculer</b>.</p>', unsafe_allow_html=True)
 
 # ===================== LAYOUT =====================
 col_inputs, col_results = st.columns([1.05, 1.95], gap="large")
 
 with col_inputs:
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("Saisir les différentes informations")
 
     prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=0.0, step=100.0)
     options = st.number_input("Autres options ($)", min_value=0.0, value=0.0, step=50.0)
@@ -345,14 +345,35 @@ with col_results:
             interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
 
             a1, a2, a3, a4 = st.columns(4, gap="medium")
-            with a1:
-                st.markdown(f"""<div class="card"><h3>Intérêts payés (cumul)</h3><div class="big">{money(interets_payes)}</div></div>""", unsafe_allow_html=True)
-            with a2:
-                st.markdown(f"""<div class="card"><h3>Intérêts restants</h3><div class="big">{money(interets_restants)}</div><div class="mini">Totaux − payés</div></div>""", unsafe_allow_html=True)
-            with a3:
-                st.markdown(f"""<div class="card"><h3>Capital restant</h3><div class="big">{money(capital_restant)}</div></div>""", unsafe_allow_html=True)
-            with a4:
-                st.markdown(f"""<div class="card"><h3>Capital remboursé</h3><div class="big">{money(capital_remb)}</div></div>""", unsafe_allow_html=True)
+with a1:
+    st.markdown(f"""
+    <div class="card kpi-blue">
+      <h3>Intérêts payés (cumul)</h3>
+      <div class="big">{money(interets_payes)}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-        
+with a2:
+    st.markdown(f"""
+    <div class="card kpi-amber">
+      <h3>Intérêts restants</h3>
+      <div class="big">{money(interets_restants)}</div>
+      <div class="mini">Totaux − payés</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with a3:
+    st.markdown(f"""
+    <div class="card kpi-slate">
+      <h3>Capital restant</h3>
+      <div class="big">{money(capital_restant)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with a4:
+    st.markdown(f"""
+    <div class="card kpi-green">
+      <h3>Capital remboursé</h3>
+      <div class="big">{money(capital_remb)}</div>
+    </div>
+    """, unsafe_allow_html=True)
