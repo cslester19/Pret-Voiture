@@ -2,10 +2,38 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 
+# ------------------ PAGE / STYLE ------------------
 st.set_page_config(page_title="Prêt voiture", page_icon="🚗", layout="wide")
-st.title("🚗 Calculateur de prêt voiture — version détaillée")
 
-# ---------- Helpers ----------
+st.markdown(
+    """
+    <style>
+      .block-container { padding-top: 2rem; }
+      h1 { margin-bottom: .2rem; }
+      .subtle { color: #6b7280; margin-top: 0; }
+      .card {
+        padding: 16px 18px;
+        border: 1px solid rgba(0,0,0,.08);
+        border-radius: 14px;
+        background: rgba(255,255,255,.6);
+        box-shadow: 0 6px 20px rgba(0,0,0,.04);
+      }
+      .card h3 { margin: 0 0 6px 0; font-size: 14px; color: #6b7280; font-weight: 600; }
+      .card .big { font-size: 26px; font-weight: 800; }
+      .pill { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(59,130,246,.08); color: #1d4ed8; font-weight: 700; font-size: 12px; }
+      .spacer { height: 10px; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.title("🚗 Calculateur de prêt voiture")
+st.markdown('<p class="subtle">Version détaillée (amortissement complet + analyse à une date + export Excel)</p>', unsafe_allow_html=True)
+
+# ------------------ HELPERS ------------------
+def money(x: float) -> str:
+    return f"{x:,.2f} $"
+
 def periods_per_year(freq: str) -> int:
     return {"Hebdomadaire": 52, "Aux 2 semaines": 26, "Mensuel": 12}[freq]
 
@@ -15,7 +43,6 @@ def add_period(d: date, freq: str) -> date:
         if m == 13:
             y += 1
             m = 1
-        # clamp jour
         dim = [31, 29 if (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0)) else 28,
                31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m-1]
         day = min(d.day, dim)
@@ -44,14 +71,14 @@ def build_schedule(principal: float, annual_rate: float, freq: str, duration_mon
         interest = bal * r
         principal_paid = payment - interest
 
-        # ajuster dernière période
+        # Ajuster dernière période
         if principal_paid > bal:
             principal_paid = bal
             payment_eff = principal_paid + interest
         else:
             payment_eff = payment
 
-        bal = bal - principal_paid
+        bal -= principal_paid
         total_interest += interest
 
         rows.append({
@@ -71,49 +98,64 @@ def build_schedule(principal: float, annual_rate: float, freq: str, duration_mon
     return df, round(payment, 2), nper, round(total_interest, 2)
 
 def pick_stats_at_date(df: pd.DataFrame, chosen: date):
-    # df["Date"] est un objet date; chosen aussi
     chosen_ts = pd.Timestamp(chosen)
-
     df_dates = pd.to_datetime(df["Date"])
     df2 = df[df_dates <= chosen_ts]
-
     if df2.empty:
         return None
-
     row = df2.iloc[-1]
     return {
-        "Date choisie": chosen,
         "Intérêts payés (cumul)": float(row["Intérêts cumulés"]),
-        "Capital restant (solde)": float(row["Solde"]),
-        "Capital remboursé (cumul)": float(row["Capital remboursé (cumul)"]),
+        "Capital restant": float(row["Solde"]),
+        "Capital remboursé": float(row["Capital remboursé (cumul)"]),
     }
 
+# ------------------ SESSION STATE ------------------
+if "calculated" not in st.session_state:
+    st.session_state.calculated = False
 
-# ---------- Inputs ----------
-st.subheader("Entrées")
+# ------------------ SIDEBAR INPUTS ------------------
+with st.sidebar:
+    st.markdown("### ⚙️ Paramètres")
+    st.markdown('<span class="pill">Remplis puis clique “Calculer”</span>', unsafe_allow_html=True)
+    st.write("")
 
-c1, c2, c3, c4 = st.columns(4)
+    prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=0.0, step=100.0)
+    options = st.number_input("Autres options ($)", min_value=0.0, value=0.0, step=50.0)
 
-with c1:
-    prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=32992.0, step=100.0)
-    options = st.number_input("Autres options ($)", min_value=0.0, value=3759.5, step=50.0)
+    taxes_pct = st.number_input("Taxes (%) (TPS+TVQ total)", min_value=0.0, value=0.0, step=0.001)
+    depot = st.number_input("Dépôt ($)", min_value=0.0, value=0.0, step=100.0)
 
-with c2:
-    tps_tvq = st.number_input("Taxes (%) (TPS+TVQ total)", min_value=0.0, value=14.975, step=0.001)
-    depot = st.number_input("Dépôt ($)", min_value=0.0, value=3000.0, step=100.0)
-
-with c3:
-    taux_annuel = st.number_input("Taux annuel (%)", min_value=0.0, value=6.99, step=0.01)
+    taux_annuel = st.number_input("Taux annuel (%)", min_value=0.0, value=0.0, step=0.01)
     duree_mois = st.number_input("Durée (mois)", min_value=1, value=60, step=1)
 
-with c4:
-    freq = st.selectbox("Fréquence de paiement", ["Mensuel", "Aux 2 semaines", "Hebdomadaire"], index=0)
+    freq = st.selectbox("Fréquence de paiement", ["Mensuel", "Aux 2 semaines", "Hebdomadaire"])
     debut = st.date_input("Date de début", value=date.today())
 
-# ---------- Calculs ----------
+    cA, cB = st.columns(2)
+    with cA:
+        calc = st.button("✅ Calculer", use_container_width=True)
+    with cB:
+        reset = st.button("🧹 Reset", use_container_width=True)
+
+    if reset:
+        st.session_state.calculated = False
+        st.rerun()
+
+    if calc:
+        st.session_state.calculated = True
+
+# ------------------ MAIN AREA (EMPTY ON FIRST LOAD) ------------------
+if not st.session_state.calculated:
+    st.markdown("### 👇 Remplis les champs à gauche")
+    st.info("Aucun calcul n’est affiché tant que tu n’as pas cliqué sur **Calculer**.")
+    st.markdown("✅ Astuce : tu peux laisser des champs à 0 si tu ne les utilises pas (ex: options).")
+    st.stop()
+
+# ------------------ CALCULATIONS ------------------
 prix_total_avant = prix_avant + options
-taxes = prix_total_avant * (tps_tvq / 100.0)
-prix_apres = prix_total_avant + taxes
+taxes_val = prix_total_avant * (taxes_pct / 100.0)
+prix_apres = prix_total_avant + taxes_val
 emprunt_total = max(prix_apres - depot, 0.0)
 
 annual_rate = taux_annuel / 100.0
@@ -127,69 +169,94 @@ df, paiement, nb_paiements, interets_totaux = build_schedule(
 
 total_paye = paiement * nb_paiements
 
-# ---------- Résumé ----------
-st.subheader("Résumé")
-r1, r2, r3, r4, r5 = st.columns(5)
-r1.metric("Prix avant taxes", f"{prix_total_avant:,.2f} $")
-r2.metric("Taxes", f"{taxes:,.2f} $")
-r3.metric("Prix après taxes", f"{prix_apres:,.2f} $")
-r4.metric("Emprunt total", f"{emprunt_total:,.2f} $")
-r5.metric("Paiement", f"{paiement:,.2f} $")
+# ------------------ SUMMARY CARDS ------------------
+st.markdown("## Résumé")
+c1, c2, c3, c4, c5 = st.columns(5)
 
-s1, s2, s3 = st.columns(3)
-s1.metric("Périodes/an", f"{periods_per_year(freq)}")
-s2.metric("Nb paiements", f"{nb_paiements}")
-s3.metric("Intérêts totaux", f"{interets_totaux:,.2f} $")
+def card(col, title, value):
+    col.markdown(f"""
+      <div class="card">
+        <h3>{title}</h3>
+        <div class="big">{value}</div>
+      </div>
+    """, unsafe_allow_html=True)
 
-st.caption(f"Total payé (approx) : {total_paye:,.2f} $")
+card(c1, "Prix avant taxes", money(prix_total_avant))
+card(c2, "Taxes", money(taxes_val))
+card(c3, "Prix après taxes", money(prix_apres))
+card(c4, "Emprunt total", money(emprunt_total))
+card(c5, "Paiement", money(paiement))
 
-# ---------- Tableau ----------
-st.subheader("Tableau d’amortissement")
-df_show = df.copy()
-df_show["Date"] = df_show["Date"].astype(str)
-st.dataframe(df_show, use_container_width=True, height=520)
+st.markdown('<div class="spacer"></div>', unsafe_allow_html=True)
 
-# ---------- Analyse à une date ----------
-st.subheader("Analyse à une date")
-date_choisie = st.date_input("Choisis une date (pour voir le cumul)", value=debut)
-stats = pick_stats_at_date(df, date_choisie)
+c6, c7, c8, c9 = st.columns(4)
+card(c6, "Périodes/an", str(periods_per_year(freq)))
+card(c7, "Nb paiements", str(nb_paiements))
+card(c8, "Intérêts totaux", money(interets_totaux))
+card(c9, "Total payé (approx.)", money(total_paye))
 
-if stats is None:
-    st.warning("La date choisie est avant la première date de paiement.")
-else:
-    a1, a2, a3 = st.columns(3)
-    a1.metric("Intérêts payés (cumul)", f"{stats['Intérêts payés (cumul)']:,.2f} $")
-    a2.metric("Capital restant", f"{stats['Capital restant (solde)']:,.2f} $")
-    a3.metric("Capital remboursé", f"{stats['Capital remboursé (cumul)']:,.2f} $")
+# ------------------ TABS ------------------
+tab1, tab2, tab3 = st.tabs(["📋 Amortissement", "📌 Analyse à une date", "⬇️ Export Excel"])
 
-# ---------- Export Excel ----------
-st.subheader("Export")
-import io
-buffer = io.BytesIO()
-with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-    df_export = df.copy()
-    df_export["Date"] = df_export["Date"].astype(str)
-    df_export.to_excel(writer, index=False, sheet_name="Amortissement")
+with tab1:
+    st.markdown("### Tableau d’amortissement")
+    df_show = df.copy()
+    df_show["Date"] = df_show["Date"].astype(str)
+    st.dataframe(df_show, use_container_width=True, height=560)
 
-    resume = pd.DataFrame([{
-        "Prix avant taxes": prix_avant,
-        "Options": options,
-        "Taxes %": tps_tvq,
-        "Dépôt": depot,
-        "Taux annuel %": taux_annuel,
-        "Durée (mois)": duree_mois,
-        "Fréquence": freq,
-        "Prix après taxes": prix_apres,
-        "Emprunt total": emprunt_total,
-        "Paiement": paiement,
-        "Nb paiements": nb_paiements,
-        "Intérêts totaux": interets_totaux,
-    }])
-    resume.to_excel(writer, index=False, sheet_name="Résumé")
+    # Petit graphique (solde)
+    st.markdown("### Graphique — Solde restant")
+    chart_df = df[["Date", "Solde"]].copy()
+    chart_df["Date"] = pd.to_datetime(chart_df["Date"])
+    chart_df = chart_df.set_index("Date")
+    st.line_chart(chart_df)
 
-st.download_button(
-    "⬇️ Télécharger l’Excel (amortissement + résumé)",
-    data=buffer.getvalue(),
-    file_name="pret_voiture_detail.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-)
+with tab2:
+    st.markdown("### Analyse à une date")
+    date_choisie = st.date_input("Choisis une date (pour voir le cumul)", value=debut)
+    stats = pick_stats_at_date(df, date_choisie)
+
+    if stats is None:
+        st.warning("La date choisie est avant la première date de paiement.")
+    else:
+        a1, a2, a3 = st.columns(3)
+        card(a1, "Intérêts payés (cumul)", money(stats["Intérêts payés (cumul)"]))
+        card(a2, "Capital restant", money(stats["Capital restant"]))
+        card(a3, "Capital remboursé", money(stats["Capital remboursé"]))
+
+with tab3:
+    st.markdown("### Export")
+    import io
+
+    buffer = io.BytesIO()
+    # pandas peut écrire sans préciser l’engine si openpyxl est installé
+    with pd.ExcelWriter(buffer) as writer:
+        df_export = df.copy()
+        df_export["Date"] = df_export["Date"].astype(str)
+        df_export.to_excel(writer, index=False, sheet_name="Amortissement")
+
+        resume = pd.DataFrame([{
+            "Prix avant taxes": prix_avant,
+            "Options": options,
+            "Taxes %": taxes_pct,
+            "Dépôt": depot,
+            "Taux annuel %": taux_annuel,
+            "Durée (mois)": duree_mois,
+            "Fréquence": freq,
+            "Date début": str(debut),
+            "Prix après taxes": prix_apres,
+            "Emprunt total": emprunt_total,
+            "Paiement": paiement,
+            "Nb paiements": nb_paiements,
+            "Intérêts totaux": interets_totaux,
+            "Total payé": total_paye,
+        }])
+        resume.to_excel(writer, index=False, sheet_name="Résumé")
+
+    st.download_button(
+        "⬇️ Télécharger l’Excel (amortissement + résumé)",
+        data=buffer.getvalue(),
+        file_name="pret_voiture_detail.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
