@@ -380,7 +380,7 @@ with col_results:
                     "Principal": st.column_config.NumberColumn(format="%.2f", width="small"),
                     "Solde": st.column_config.NumberColumn(format="%.2f", width="small"),
                     "Intérêts cumulés": st.column_config.NumberColumn(format="%.2f", width="small"),
-                    "Cap. remboursé (cumul)": st.column_config.NumberColumn(format="%.2f", width="medium"),
+                    "Cap. remboursé (cumul)": st.column_config.NumberColumn(format="%.2f", width="small"),
                 },
             )
 
