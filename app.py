@@ -28,7 +28,6 @@ st.markdown(
 )
 
 st.title("🚗 Calculateur de prêt voiture")
-st.markdown('<p class="subtle">Version détaillée (amortissement complet + analyse à une date + export Excel)</p>', unsafe_allow_html=True)
 
 # ------------------ HELPERS ------------------
 def money(x: float) -> str:
