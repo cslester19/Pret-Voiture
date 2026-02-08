@@ -3,8 +3,45 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import date, timedelta
 
-# ------------------ PAGE / STYLE ------------------
-st.set_page_config(page_title="Prêt voiture", page_icon="🚗", layout="wide")
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Prêt voiture",
+    page_icon="🚗",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ----------- HIDE STREAMLIT UI -------------
+st.markdown("""
+<style>
+
+/* Cache toolbar (Share, GitHub, etc.) */
+[data-testid="stToolbar"] {
+    visibility: hidden !important;
+}
+
+/* Cache menu hamburger */
+#MainMenu {
+    visibility: hidden !important;
+}
+
+/* Cache header */
+header {
+    visibility: hidden !important;
+}
+
+/* Cache footer */
+footer {
+    visibility: hidden !important;
+}
+
+/* Ajuste padding */
+.block-container {
+    padding-top: 1rem;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 st.markdown(
     """
