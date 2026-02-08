@@ -321,59 +321,60 @@ with col_results:
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
         # ===== ANALYSE À UNE DATE =====
-        st.subheader("Analyse à une date")
-        if df.empty:
-            st.info("Analyse indisponible (emprunt à 0).")
-        else:
-            chosen = st.date_input("Choisis une date (pour voir le cumul)", value=df["Date"].iloc[0])
+st.subheader("Analyse à une date")
 
-            # Convert safely
-            df2 = df.copy()
-            df2["Date"] = pd.to_datetime(df2["Date"]).dt.date
+if df.empty:
+    st.info("Analyse indisponible (emprunt à 0).")
+else:
+    chosen = st.date_input("Choisis une date (pour voir le cumul)", value=df["Date"].iloc[0])
 
-            mask = df2["Date"] <= chosen
-            if mask.any():
-                last_row = df2[mask].iloc[-1]
-                interets_payes = float(last_row["Intérêts cumulés"])
-                capital_restant = float(last_row["Solde"])
-                capital_remb = float(last_row["Capital remboursé (cumul)"])
-            else:
-                interets_payes = 0.0
-                capital_restant = float(df2["Solde"].iloc[0])
-                capital_remb = 0.0
+    df2 = df.copy()
+    df2["Date"] = pd.to_datetime(df2["Date"]).dt.date
 
-            interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
+    mask = df2["Date"] <= chosen
+    if mask.any():
+        last_row = df2[mask].iloc[-1]
+        interets_payes = float(last_row["Intérêts cumulés"])
+        capital_restant = float(last_row["Solde"])
+        capital_remb = float(last_row["Capital remboursé (cumul)"])
+    else:
+        interets_payes = 0.0
+        capital_restant = float(df2["Solde"].iloc[0])
+        capital_remb = 0.0
 
-            a1, a2, a3, a4 = st.columns(4, gap="medium")
-with a1:
-    st.markdown(f"""
-    <div class="card kpi-blue">
-      <h3>Intérêts payés (cumul)</h3>
-      <div class="big">{money(interets_payes)}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
 
-with a2:
-    st.markdown(f"""
-    <div class="card kpi-amber">
-      <h3>Intérêts restants</h3>
-      <div class="big">{money(interets_restants)}</div>
-      <div class="mini">Totaux − payés</div>
-    </div>
-    """, unsafe_allow_html=True)
+    a1, a2, a3, a4 = st.columns(4, gap="medium")
 
-with a3:
-    st.markdown(f"""
-    <div class="card kpi-slate">
-      <h3>Capital restant</h3>
-      <div class="big">{money(capital_restant)}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with a1:
+        st.markdown(f"""
+        <div class="card kpi-blue">
+          <h3>Intérêts payés (cumul)</h3>
+          <div class="big">{money(interets_payes)}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-with a4:
-    st.markdown(f"""
-    <div class="card kpi-green">
-      <h3>Capital remboursé</h3>
-      <div class="big">{money(capital_remb)}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with a2:
+        st.markdown(f"""
+        <div class="card kpi-amber">
+          <h3>Intérêts restants</h3>
+          <div class="big">{money(interets_restants)}</div>
+          <div class="mini">Totaux − payés</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with a3:
+        st.markdown(f"""
+        <div class="card kpi-slate">
+          <h3>Capital restant</h3>
+          <div class="big">{money(capital_restant)}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with a4:
+        st.markdown(f"""
+        <div class="card kpi-green">
+          <h3>Capital remboursé</h3>
+          <div class="big">{money(capital_remb)}</div>
+        </div>
+        """, unsafe_allow_html=True)
