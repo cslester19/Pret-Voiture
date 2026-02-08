@@ -322,7 +322,6 @@ with col_results:
 
         # ===== ANALYSE À UNE DATE =====
 st.subheader("Analyse à une date")
-
 if df.empty:
     st.info("Analyse indisponible (emprunt à 0).")
 else:
