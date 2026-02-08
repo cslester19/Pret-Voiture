@@ -301,18 +301,30 @@ else:
     labels = ["Payés", "Restants"]
 
     fig, ax = plt.subplots(figsize=(4.6, 4.6))
-    ax.pie(values, startangle=90, labels=labels, autopct="%1.0f%%", wedgeprops=dict(width=0.42))
+    ax.pie(values, startangle=90, labels=labels, autopct="%1.0f%%",
+           wedgeprops=dict(width=0.42))
     ax.set(aspect="equal")
 
-    ax.text(0, 0.05, "Intérêts\nTotaux", ha="center", va="center", fontsize=12, fontweight="bold")
-    ax.text(0, -0.12, money(float(interets_totaux)), ha="center", va="center", fontsize=12)
+    ax.text(0, 0.05, "Intérêts\nTotaux",
+            ha="center", va="center",
+            fontsize=12, fontweight="bold")
+    ax.text(0, -0.12, money(float(interets_totaux)),
+            ha="center", va="center", fontsize=12)
 
     st.pyplot(fig, clear_figure=True)
-    recap = pd.DataFrame({
-            "Type": ["Intérêts payés", "Intérêts restants", "Intérêts totaux"],
-            "Montant": [money(interets_payes), money(interets_restants), money(float(interets_totaux))]
-        })
-        st.dataframe(recap, use_container_width=True, hide_index=True)
+
+# ✅ Bien aligné ici
+recap = pd.DataFrame({
+    "Type": ["Intérêts payés", "Intérêts restants", "Intérêts totaux"],
+    "Montant": [
+        money(interets_payes),
+        money(interets_restants),
+        money(float(interets_totaux))
+    ]
+})
+
+st.dataframe(recap, use_container_width=True, hide_index=True)
+
 
 with tab3:
     st.markdown("### Export")
