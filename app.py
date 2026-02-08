@@ -218,10 +218,16 @@ with tab2:
     if stats is None:
         st.warning("La date choisie est avant la première date de paiement.")
     else:
-        a1, a2, a3 = st.columns(3)
-        card(a1, "Intérêts payés (cumul)", money(stats["Intérêts payés (cumul)"]))
+        interets_payes = stats["Intérêts payés (cumul)"]
+        interets_restants = interets_totaux - interets_payes
+
+        a1, a2, a3, a4 = st.columns(4)
+
+        card(a1, "Intérêts payés (cumul)", money(interets_payes))
         card(a2, "Capital restant", money(stats["Capital restant"]))
         card(a3, "Capital remboursé", money(stats["Capital remboursé"]))
+        card(a4, "Intérêts restants", money(interets_restants))
+
 
 with tab3:
     st.markdown("### Export")
