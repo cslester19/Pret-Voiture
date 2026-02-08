@@ -320,8 +320,9 @@ with col_results:
 
         st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
-        # ===== ANALYSE À UNE DATE =====
+# ===== ANALYSE À UNE DATE =====
 st.subheader("Analyse à une date")
+
 if df.empty:
     st.info("Analyse indisponible (emprunt à 0).")
 else:
