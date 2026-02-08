@@ -89,10 +89,10 @@ div[data-testid="stDataFrame"] .stDataFrame { overflow-x: auto !important; }
 }
 
 /* Analysis colored cards */
-.card-blue{ background: rgba(2,132,199,.08); border-color: rgba(2,132,199,.22); }
-.card-green{ background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.22); }
-.card-amber{ background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.24); }
-.card-slate{ background: rgba(15,23,42,.04); border-color: rgba(15,23,42,.10); }
+.card-blue{ background: rgba(2,132,199,.08); border-color: rgba(245,158,11,.12); }
+.card-green{ background: rgba(34,197,94,.10); border-color: rgba(37,99,235,.10); }
+.card-amber{ background: rgba(245,158,11,.12); border-color: rgba(22,163,74,.12); }
+.card-slate{ background: rgba(15,23,42,.04); border-color: rgba(220,38,38,.10); }
 
 /* “left panel” container */
 .panel{
@@ -402,7 +402,7 @@ with col_results:
 
             interets_restants = max(float(interets_totaux) - interets_payes, 0.0)
 
-            a1, a2, a3, a4 = st.columns(4, gap="large")
+            a1, a2, a3, a4 = st.columns(4, gap="medium")
             with a1:
                 st.markdown(
                     f"""<div class="card card-blue"><h3>Intérêts payés (cumul)</h3><div class="big">{money(interets_payes)}</div></div>""",
