@@ -282,7 +282,7 @@ with tab2:
                    accent="#dc2626", bg="rgba(220,38,38,.12)")
 
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-       st.markdown("### Intérêts — Payés vs Restants")
+        st.markdown("### Intérêts — Payés vs Restants")
 
 # Sécuriser les valeurs pour éviter ValueError
 interets_payes = 0.0 if pd.isna(interets_payes) else float(interets_payes)
