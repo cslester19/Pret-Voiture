@@ -282,18 +282,32 @@ with tab2:
                    accent="#dc2626", bg="rgba(220,38,38,.12)")
 
         st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-        st.markdown("### Intérêts — Payés vs Restants")
+       st.markdown("### Intérêts — Payés vs Restants")
 
-        values = [interets_payes, interets_restants]
+# Sécuriser les valeurs pour éviter ValueError
+interets_payes = 0.0 if pd.isna(interets_payes) else float(interets_payes)
+interets_restants = 0.0 if pd.isna(interets_restants) else float(interets_restants)
 
-        fig, ax = plt.subplots(figsize=(4.6, 4.6))
-        ax.pie(values, startangle=90, wedgeprops=dict(width=0.42))
-        ax.set(aspect="equal")
+# Clamp (éviter négatif)
+interets_payes = max(interets_payes, 0.0)
+interets_restants = max(interets_restants, 0.0)
 
-        ax.text(0, 0.05, "Intérêts\nTotaux", ha="center", va="center", fontsize=12, fontweight="bold")
-        ax.text(0, -0.12, money(float(interets_totaux)), ha="center", va="center", fontsize=12)
+total_for_chart = interets_payes + interets_restants
 
-        st.pyplot(fig, clear_figure=True)
+if total_for_chart <= 0:
+    st.info("Aucun intérêt à afficher (taux = 0% ou emprunt = 0$).")
+else:
+    values = [interets_payes, interets_restants]
+    labels = ["Payés", "Restants"]
+
+    fig, ax = plt.subplots(figsize=(4.6, 4.6))
+    ax.pie(values, startangle=90, labels=labels, autopct="%1.0f%%", wedgeprops=dict(width=0.42))
+    ax.set(aspect="equal")
+
+    ax.text(0, 0.05, "Intérêts\nTotaux", ha="center", va="center", fontsize=12, fontweight="bold")
+    ax.text(0, -0.12, money(float(interets_totaux)), ha="center", va="center", fontsize=12)
+
+    st.pyplot(fig, clear_figure=True)
 
         recap = pd.DataFrame({
             "Type": ["Intérêts payés", "Intérêts restants", "Intérêts totaux"],
