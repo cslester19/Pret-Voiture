@@ -222,7 +222,7 @@ if "calculated" not in st.session_state:
     st.session_state.calculated = False
 
 # ===================== HEADER =====================
-st.title("🚗 Calculateur de prêt voiture — version détaillée")
+st.title("🚗 Calculateur de prêt voiture")
 st.caption("👇 Remplis les champs en bas puis clique sur **Calculer**.")
 
 # ===================== LAYOUT =====================
@@ -235,7 +235,7 @@ with col_inputs:
 
     prix_avant = st.number_input("Prix véhicule avant taxes ($)", min_value=0.0, value=0.0, step=100.0)
     options = st.number_input("Autres options ($)", min_value=0.0, value=0.0, step=50.0)
-    taxes_pct = st.number_input("Taxes (%) (TPS+TVQ total)", min_value=0.0, value=0.0, step=0.01)
+    taxes_pct = st.number_input("Taxes (%) (TPS+TVQ total)", min_value=0.0, value=0.0, step=0.0001)
     depot = st.number_input("Dépôt ($)", min_value=0.0, value=0.0, step=100.0)
 
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
